@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>AlgoTask1</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/x-icon" href="./favicon.ico" />
+    <link href="./styles.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+    <div class="page-wrapper">
+      <div class="tasks">
+        <p>
+          You have two containers that can hold tile objects in them. The
+          containers have a width of 500 pixels and a minimum height of 400
+          pixels. The tiles have a constant size of 120x40 pixels.
+        </p>
+
+        <ol>
+          <li>
+            Implement adding of new tiles on random position in the left
+            container. The tiles should use the text from the input field below
+            the containers. Put your implementation in the addTile() method.
+          </li>
+          <li>
+            Sort and position the tiles in the left container so that they don't
+            overlap. The tiles should be sorted by name and positioned using
+            their "left" and "top" properties. Put your implementation in the
+            sortTiles() method.
+          </li>
+          <li>
+            Extend the sorting by adding space of 10 pixels between tiles.
+          </li>
+          <li>Implement moving between containers by tile click.</li>
+          <li>
+            Extend the moving by maintaining the sorted order of the tiles in
+            both containers after tile is moved.
+          </li>
+          <li>Implement Drag and Drop between containers.</li>
+        </ol>
+      </div>
+
+      <div class="containers">
+        <div id="container-1" class="container"></div>
+        <div id="container-2" class="container"></div>
+      </div>
+
+      <div class="actions">
+        <input id="tile-name" type="text" placeholder="Tile name" />
+        <button onclick="addTile()">Add tile</button>
+        <button onclick="sortTiles()">Sort tiles</button>
+      </div>
+    </div>
+
+    <script src="./scripts.js" type="text/javascript"></script>
+  </body>
+</html>
