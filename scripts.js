@@ -20,6 +20,10 @@ function createTileObject(name, top, left) {
   newTile.addEventListener('click', function () {
     moveTile(this.id, this.parentElement);
   });
+  newTile.draggable = 'true';
+  newTile.addEventListener('dragstart', function (ev) {
+    ev.dataTransfer.setData('div', ev.target.id);
+  });
 
   tilesFirstContainer.push(newTile);
 
@@ -36,13 +40,16 @@ function addTile() {
 
 function sortOneContainer(container, tilesToSort) {
   tilesToSort.sort((a, b) => a.innerText.localeCompare(b.innerText));
+
   let currentY = -40;
   let currentX = 0;
   let heightToAdd = 10;
   let marginLeft = 10;
   let marginTop = 0;
 
-  const maxElementsOnLine = parseInt(container.offsetWidth / (120 + 40));
+  // 120 - width of tile, 30 - total padding on line
+  const maxElementsOnLine = parseInt(container.offsetWidth / (120 + 30));
+  //400 - minHeight of container, 60 - sum of: padding (20 - top+bottom) and height of tile (40)
   const maxElementsInCont = parseInt((400 / 60) * maxElementsOnLine);
 
   container.innerHTML = '';
@@ -51,7 +58,8 @@ function sortOneContainer(container, tilesToSort) {
     if (i % maxElementsOnLine === 0) {
       currentY = currentY + 40;
       currentX = 0;
-      marginLeft = 50;
+      marginLeft = (container.offsetWidth - maxElementsOnLine * (120 + 10)) / 2;
+
       marginTop = marginTop + 10;
 
       if (i >= maxElementsInCont) {
@@ -83,18 +91,37 @@ function moveTile(id, container) {
   if (container == container1) {
     const tileToMove = tilesFirstContainer.find((tile) => tile.id === id);
     tilesFirstContainer = tilesFirstContainer.filter((tile) => tile.id !== id);
-    tilesSecondContainer.push(tileToMove);
-    container1.removeChild(tileToMove);
-    container2.appendChild(tileToMove);
+
+    if (tileToMove) {
+      tilesSecondContainer.push(tileToMove);
+      container1.removeChild(tileToMove);
+      container2.appendChild(tileToMove);
+      sortTiles();
+    }
   } else {
     const tileToMove = tilesSecondContainer.find((tile) => tile.id === id);
     tilesSecondContainer = tilesSecondContainer.filter(
       (tile) => tile.id !== id
     );
-    tilesFirstContainer.push(tileToMove);
-    container2.removeChild(tileToMove);
-    container1.appendChild(tileToMove);
+    if (tileToMove) {
+      tilesFirstContainer.push(tileToMove);
+      container2.removeChild(tileToMove);
+      container1.appendChild(tileToMove);
+      sortTiles();
+    }
   }
+}
 
-  sortTiles();
+function handleDrop(ev) {
+  let draggedTileId = ev.dataTransfer.getData('div');
+
+  if (ev.target == container1) {
+    moveTile(draggedTileId, container2);
+  } else {
+    moveTile(draggedTileId, container1);
+  }
+}
+
+function allowDrag(ev) {
+  ev.preventDefault();
 }
