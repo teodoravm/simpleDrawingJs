@@ -1,8 +1,14 @@
 // Containers - use those for interaction with them
 const container1 = document.getElementById('container-1');
 const container2 = document.getElementById('container-2');
-let tilesFirstContainer = [];
-let tilesSecondContainer = [];
+const tileHeight = 40;
+const tileWidth = 120;
+const padding = 10;
+const tileHeightWithPadding = 50;
+const tileWidthWithPadding = 130;
+const containerHeight = 400;
+const containerWidth = 500;
+let idCounter = 0;
 
 // Setup initial tile
 const tile = createTileObject('Tile 1', 50, 60);
@@ -11,117 +17,121 @@ container1.appendChild(tile);
 // Your implementation goes here
 
 function createTileObject(name, top, left) {
-  const newTile = document.createElement('div');
-  newTile.classList.add('tile');
-  newTile.innerText = name;
-  newTile.style.top = top + 'px';
-  newTile.style.left = left + 'px';
-  newTile.id = Math.floor(Math.random() * 1000);
-  newTile.addEventListener('click', function () {
-    moveTile(this.id, this.parentElement);
-  });
-  newTile.draggable = 'true';
-  newTile.addEventListener('dragstart', function (ev) {
-    ev.dataTransfer.setData('div', ev.target.id);
-  });
+    const newTile = document.createElement('div');
+    newTile.classList.add('tile');
+    newTile.innerText = name;
+    newTile.style.top = top + 'px';
+    newTile.style.left = left + 'px';
+    newTile.id = idCounter;
+    newTile.addEventListener('click', function () {
+        if (this.parentElement === container1) {
+            moveTile(this.id, this.parentElement, container2);
+        } else {
+            moveTile(this.id, this.parentElement, container1);
+        }
+    });
+    newTile.draggable = 'true';
+    newTile.addEventListener('dragstart', function (ev) {
+        ev.dataTransfer.setData('div', ev.target.id);
+    });
 
-  tilesFirstContainer.push(newTile);
+    idCounter = idCounter + 1;
 
-  return newTile;
+    return newTile;
 }
 
 function addTile() {
-  const input = document.getElementById('tile-name').value;
-  const randomTop = Math.floor(Math.random() * (400 - 40));
-  const randomLeft = Math.floor(Math.random() * (500 - 120));
-  const tile1 = createTileObject(input, randomTop, randomLeft);
-  container1.appendChild(tile1);
+    const input = document.getElementById('tile-name').value;
+
+    if (input !== '') {
+        const randomTop = Math.floor(
+            Math.random() * (containerHeight - tileHeight)
+        );
+        const randomLeft = Math.floor(
+            Math.random() * (containerWidth - tileWidth)
+        );
+        const tile1 = createTileObject(input, randomTop, randomLeft);
+        container1.appendChild(tile1);
+    }
 }
 
-function sortOneContainer(container, tilesToSort) {
-  tilesToSort.sort((a, b) => a.innerText.localeCompare(b.innerText));
+function sortContainer(container, children) {
+    const tiles = Array.from(children);
+    tiles.sort((a, b) => a.innerText.localeCompare(b.innerText));
 
-  let currentY = -40;
-  let currentX = 0;
-  let heightToAdd = 10;
-  let marginLeft = 10;
-  let marginTop = 0;
+    let top = -40;
+    let left = 0;
+    let heightToAdd = 10;
 
-  // 120 - width of tile, 30 - total padding on line
-  const maxElementsOnLine = parseInt(container.offsetWidth / (120 + 30));
-  //400 - minHeight of container, 60 - sum of: padding (20 - top+bottom) and height of tile (40)
-  const maxElementsInCont = parseInt((400 / 60) * maxElementsOnLine);
+    //calculating the maximum count of tiles on a row inluding the padding before each one
+    const maxElementsOnLine = parseInt(
+        container.offsetWidth / (tileWidth + padding * 3)
+    );
+    //calculating the maximum count of tiles in the container inluding the top and bottom padding
+    const maxElementsInCont = parseInt(
+        (containerHeight / (tileHeight + padding * 2)) * maxElementsOnLine
+    );
 
-  container.innerHTML = '';
+    container.innerHTML = '';
 
-  for (let i = 0; i < tilesToSort.length; i++) {
-    if (i % maxElementsOnLine === 0) {
-      currentY = currentY + 40;
-      currentX = 0;
-      marginLeft = (container.offsetWidth - maxElementsOnLine * (120 + 10)) / 2;
+    for (let i = 0; i < tiles.length; i++) {
+        const tileStyle = tiles[i].style;
 
-      marginTop = marginTop + 10;
+        //when the tile is the last on the line increment top and set left so that the tiles are centered
+        if (i % maxElementsOnLine === 0) {
+            top = top + tileHeightWithPadding;
+            //calculating the space on the left needed for centering the tiles by
+            //extracting the total space taken by the tiles on the row and dividing that by 2
+            left =
+                (container.offsetWidth -
+                    maxElementsOnLine * tileWidthWithPadding) /
+                2;
 
-      if (i >= maxElementsInCont) {
-        container.style.minHeight = 400 + heightToAdd + 'px';
+            if (i >= maxElementsInCont) {
+                container.style.minHeight =
+                    containerHeight + heightToAdd + 'px';
 
-        heightToAdd = heightToAdd + 50;
-      }
-    } else {
-      currentX = currentX + 120;
+                heightToAdd = heightToAdd + tileHeightWithPadding;
+            }
+        } else {
+            left = left + tileWidth;
+        }
+
+        tileStyle.top = top + 'px';
+        tileStyle.left = left + 'px';
+
+        left = left + padding;
+
+        container.appendChild(tiles[i]);
     }
-
-    tilesToSort[i].style.top = currentY + 'px';
-    tilesToSort[i].style.left = currentX + 'px';
-    tilesToSort[i].style.marginLeft = marginLeft + 'px';
-    tilesToSort[i].style.marginTop = marginTop + 'px';
-
-    marginLeft = marginLeft + 10;
-
-    container.appendChild(tilesToSort[i]);
-  }
 }
 
 function sortTiles() {
-  sortOneContainer(container1, tilesFirstContainer);
-  sortOneContainer(container2, tilesSecondContainer);
+    sortContainer(container1, container1.childNodes);
+    sortContainer(container2, container2.childNodes);
 }
 
-function moveTile(id, container) {
-  if (container == container1) {
-    const tileToMove = tilesFirstContainer.find((tile) => tile.id === id);
-    tilesFirstContainer = tilesFirstContainer.filter((tile) => tile.id !== id);
-
+function moveTile(id, containerFrom, containerTo) {
+    const tiles = Array.from(containerFrom.childNodes);
+    const tileToMove = tiles.find((tile) => tile.id === id);
     if (tileToMove) {
-      tilesSecondContainer.push(tileToMove);
-      container1.removeChild(tileToMove);
-      container2.appendChild(tileToMove);
-      sortTiles();
+        containerFrom.removeChild(tileToMove);
+        containerTo.appendChild(tileToMove);
+        sortTiles();
     }
-  } else {
-    const tileToMove = tilesSecondContainer.find((tile) => tile.id === id);
-    tilesSecondContainer = tilesSecondContainer.filter(
-      (tile) => tile.id !== id
-    );
-    if (tileToMove) {
-      tilesFirstContainer.push(tileToMove);
-      container2.removeChild(tileToMove);
-      container1.appendChild(tileToMove);
-      sortTiles();
-    }
-  }
 }
 
 function handleDrop(ev) {
-  let draggedTileId = ev.dataTransfer.getData('div');
+    let draggedTileId = ev.dataTransfer.getData('div');
 
-  if (ev.target == container1) {
-    moveTile(draggedTileId, container2);
-  } else {
-    moveTile(draggedTileId, container1);
-  }
+    if (ev.target == container1) {
+        moveTile(draggedTileId, container2, container1);
+    } else {
+        moveTile(draggedTileId, container1, container2);
+    }
 }
 
+//prevents the browser's default behaviour which is to not allow dragging of elements
 function allowDrag(ev) {
-  ev.preventDefault();
+    ev.preventDefault();
 }
